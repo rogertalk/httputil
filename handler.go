@@ -12,7 +12,12 @@ type HandlerFunc func(r *http.Request) (interface{}, error)
 
 // Error returns an error object for the provided HTTP status code.
 func Error(code int) error {
-	return httpError{code}
+	return httpError{code, fmt.Sprintf("HTTP %d", code)}
+}
+
+// ErrorMessage returns an error object for the provided HTTP status code.
+func ErrorMessage(code int, message string) error {
+	return httpError{code, message}
 }
 
 // ErrorHandler will always return an error with the provided HTTP status code.
@@ -44,11 +49,12 @@ func Handler(f HandlerFunc) http.HandlerFunc {
 }
 
 type httpError struct {
-	code int
+	code    int
+	message string
 }
 
 func (e httpError) Error() string {
-	return fmt.Sprintf("HTTP %d", e.code)
+	return e.message
 }
 
 func writeError(w http.ResponseWriter, err error) {

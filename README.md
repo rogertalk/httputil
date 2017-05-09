@@ -13,13 +13,11 @@ Examples
 ```go
 package main
 
-import "fmt"
 import "net/http"
 import "github.com/fika-io/httputil"
 
 func main() {
   http.HandleFunc("/hello", RequestHello)
-  fmt.Println("Serving on port 8080...")
   http.ListenAndServe(":8080", httputil.Logger(http.DefaultServeMux))
 }
 
@@ -40,7 +38,6 @@ You will now get log lines whenever a request is made:
 ```go
 func main() {
   http.HandleFunc("/hello", RequestHello)
-  fmt.Println("Serving on port 8080...")
   http.ListenAndServe(":8080", httputil.Logger(httputil.Gzipper(http.DefaultServeMux)))
 }
 ```
@@ -58,7 +55,6 @@ func main() {
   http.Handle("/s/", httputil.Cacher(168*time.Hour, http.StripPrefix("/s/", http.FileServer(http.Dir("static")))))
   http.Handle("/favicon.ico", httputil.FileWithCache("static/favicon.ico", 168*time.Hour))
   http.Handle("/robots.txt", httputil.FileWithCache("static/robots.txt", 24*time.Hour))
-  fmt.Println("Serving on port 8080...")
   http.ListenAndServe(":8080", httputil.Logger(httputil.Gzipper(http.DefaultServeMux)))
 }
 ```
@@ -73,15 +69,21 @@ func main() {
 ```go
 func main() {
   http.HandleFunc("/hello", httputil.Handler(RequestHello))
-  fmt.Println("Serving on port 8080...")
   http.ListenAndServe(":8080", httputil.Logger(httputil.Gzipper(http.DefaultServeMux)))
 }
 
 func RequestHello(r *http.Request) (interface{}, error) {
   name := r.URL.Query().Get("name")
   if name == "" {
-    return nil, fmt.Errorf("name is missing")
+    return nil, httputil.ErrorMessage(400, "no name provided")
   }
   return map[string]string{"hello": name}, nil
 }
+```
+
+Now you get JSON responses:
+
+```
+$ curl http://localhost:8080/hello?name=bob
+{"hello":"bob"}
 ```
