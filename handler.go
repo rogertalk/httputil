@@ -31,6 +31,7 @@ func ErrorHandler(code int) http.HandlerFunc {
 func Handler(f HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		v, err := f(r)
+		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		if err != nil {
 			writeError(w, err)
